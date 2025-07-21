@@ -62,7 +62,102 @@ sudo zypper install -y nodejs18 npm18
 ```
 
 
-### 3. Configure Wine
+### 3. Install and Configure Chromium Browser
+
+**Debian/Ubuntu:**
+```shell script
+sudo apt install -y chromium-browser
+```
+
+
+**Fedora/RHEL:**
+```shell script
+sudo dnf install -y chromium
+```
+
+
+**Arch Linux:**
+```shell script
+sudo pacman -S chromium
+```
+
+
+**openSUSE:**
+```shell script
+sudo zypper install -y chromium
+```
+
+
+#### Configure Chromium for Web Development
+
+```shell script
+# Create Chromium configuration directory
+mkdir -p ~/.config/chromium/Default
+
+# Create a desktop shortcut for easy access (optional)
+cat > ~/.local/share/applications/chromium-dev.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Name=Chromium (Dev Mode)
+Comment=Web Browser with Dev Tools
+Exec=chromium --disable-web-security --user-data-dir=/tmp/chromium-dev --allow-running-insecure-content
+Icon=chromium
+Terminal=false
+Type=Application
+Categories=Network;WebBrowser;
+EOF
+
+# Make it executable
+chmod +x ~/.local/share/applications/chromium-dev.desktop
+```
+
+
+#### Test Chromium Installation
+
+```shell script
+# Test if Chromium runs properly
+chromium --version
+
+# Test opening a URL
+chromium https://google.com &
+```
+
+
+#### Alternative Browsers (if Chromium doesn't work)
+
+**Install Google Chrome:**
+```shell script
+# Debian/Ubuntu
+wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
+sudo apt update
+sudo apt install -y google-chrome-stable
+
+# Fedora/RHEL
+sudo dnf install -y google-chrome-stable
+
+# Arch (from AUR)
+yay -S google-chrome
+```
+
+
+**Install Firefox (fallback):**
+```shell script
+# Debian/Ubuntu
+sudo apt install -y firefox
+
+# Fedora/RHEL
+sudo dnf install -y firefox
+
+# Arch
+sudo pacman -S firefox
+
+# openSUSE
+sudo zypper install -y firefox
+```
+
+
+### 4. Configure Wine
 
 ```shell script
 # Set Wine environment
@@ -74,7 +169,7 @@ winecfg
 ```
 
 
-### 4. Install Python in Wine
+### 5. Install Python in Wine
 
 ```shell script
 # Download Python for Windows
@@ -119,6 +214,39 @@ chmod +x start.sh
 ### 4. Stop Services
 Press `Ctrl+C` in the terminal to stop all services.
 
+## 🌐 Browser Configuration Tips
+
+### For CORS and Local Development
+
+If you have issues with CORS or local file access, launch Chromium with development flags:
+
+```shell script
+chromium --disable-web-security --user-data-dir=/tmp/chromium-dev --allow-running-insecure-content http://localhost:3000
+```
+
+
+### Set Default Browser
+
+```shell script
+# Check current default browser
+xdg-settings get default-web-browser
+
+# Set Chromium as default
+xdg-settings set default-web-browser chromium-browser.desktop
+
+# Or for Google Chrome
+xdg-settings set default-web-browser google-chrome.desktop
+```
+
+
+### Browser Detection Order
+
+The script will try browsers in this order:
+1. **google-chrome** (Google Chrome)
+2. **chromium-browser** or **chromium** (Chromium)
+3. **firefox** (Firefox)
+4. **xdg-open** (System default)
+
 ## 🔧 What the Script Does
 
 1. **Auto-installs Ollama** if missing
@@ -128,7 +256,7 @@ Press `Ctrl+C` in the terminal to stop all services.
    - Ollama service
    - ChatAI backend (Wine app)
    - Node.js proxy server
-5. **Opens browser** automatically
+5. **Opens browser** automatically (tries Chromium first)
 6. **Handles cleanup** when stopped
 
 ## 🐛 Quick Troubleshooting
@@ -145,6 +273,20 @@ wine python --version  # Should show Python 3.10.x
 ```
 
 
+**Browser not opening:**
+```shell script
+# Check if Chromium is installed
+chromium --version
+
+# Manually open the URL
+chromium http://localhost:3000
+
+# Or try other browsers
+google-chrome http://localhost:3000
+firefox http://localhost:3000
+```
+
+
 **Port conflicts:**
 ```shell script
 sudo netstat -tulpn | grep -E ':(3000|5001|11434)'
@@ -157,4 +299,4 @@ tail -f server.log
 ```
 
 
-That's it! Just install Wine + Node.js, configure Wine, install Python in Wine, then run the script.
+That's it! Install Wine + Node.js + Chromium, configure Wine, install Python in Wine, then run the script. Chromium will automatically open the ChatAI interface.
